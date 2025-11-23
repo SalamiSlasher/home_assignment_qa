@@ -1,0 +1,16 @@
+[project]
+name = "httpbin-tests"
+version = "0.0.42"
+dependencies = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "python-dotenv",
+    "pydantic[email]",
+    "pydantic-settings",
+    "faker",
+    "allure-pytest",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
