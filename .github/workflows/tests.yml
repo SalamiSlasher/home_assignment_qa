@@ -4,14 +4,14 @@ on:
   push:
     branches: [ master ]
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   test-and-publish:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout
@@ -34,26 +34,29 @@ jobs:
 
       - name: Install Allure CLI
         run: |
-          wget https://github.com/allure-framework/allure2/releases/download/2.35.1/allure-2.35.1.zip -O allure.zip
+          wget https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.zip -O allure.zip
           unzip allure.zip -d /tmp/allure
-          sudo mv /tmp/allure/allure-2.35.1 /opt/allure
+          sudo mv /tmp/allure/allure-2.29.0 /opt/allure
           echo "/opt/allure/bin" >> $GITHUB_PATH
 
       - name: Generate HTML report
         run: |
           allure generate allure-results -o allure-report --clean
 
-      - name: Upload report artifact (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report
-
-      # Deploy to GitHub Pages
+      # ONLY ONE PAGES ARTIFACT
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: allure-report
 
-      - name: Deploy to GitHub Pages
+  deploy:
+    needs: test-and-publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy GitHub Pages
         uses: actions/deploy-pages@v4
