@@ -1,13 +1,17 @@
-name: Tests with Allure
+name: Allure Report to GitHub Pages
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
+    branches: [ master ]
 
 jobs:
-  tests:
+  test-and-publish:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -22,16 +26,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
+          pip install allure-pytest
 
       - name: Run tests with Allure
         run: |
-          pytest -v --alluredir=allure-results
-
-      - name: Upload Allure raw results
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results
+          pytest --alluredir=allure-results
 
       - name: Install Allure CLI
         run: |
@@ -40,12 +39,21 @@ jobs:
           sudo mv /tmp/allure/allure-2.35.1 /opt/allure
           echo "/opt/allure/bin" >> $GITHUB_PATH
 
-      - name: Generate Allure HTML report
+      - name: Generate HTML report
         run: |
           allure generate allure-results -o allure-report --clean
 
-      - name: Upload Allure HTML report
+      - name: Upload report artifact (optional)
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report
+
+      # Deploy to GitHub Pages
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: allure-report
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
